@@ -1,8 +1,15 @@
 """Shared CLI utilities for skill-add, command-add, and agent-add."""
 
+import random
+from contextlib import contextmanager
 from pathlib import Path
 
 import typer
+from rich.console import Console
+from rich.live import Live
+from rich.spinner import Spinner
+
+console = Console()
 
 
 def parse_resource_ref(ref: str) -> tuple[str, str]:
@@ -48,3 +55,21 @@ def get_destination(resource_subdir: str, global_install: bool) -> Path:
         base = Path.cwd() / ".claude"
 
     return base / resource_subdir
+
+
+@contextmanager
+def fetch_spinner():
+    """Show spinner during fetch operation."""
+    with Live(Spinner("dots", text="Fetching..."), console=console, transient=True):
+        yield
+
+
+def print_success_message(resource_type: str, name: str, username: str) -> None:
+    """Print branded success message with rotating CTA."""
+    console.print(f"✅ Added {resource_type} '{name}' via 🧩 agent-resources", style="dim")
+    ctas = [
+        f"💡 Create your own {resource_type} library on GitHub: uvx create-agent-resources-repo --github",
+        "⭐ Star: github.com/kasperjunge/agent-resources-project",
+        f"📢 Share: uvx add-{resource_type} {username}/{name}",
+    ]
+    console.print(random.choice(ctas), style="dim")
