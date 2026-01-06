@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from agent_resources.cli.common import get_destination, parse_resource_ref
+from agent_resources.cli.common import fetch_spinner, get_destination, parse_resource_ref, print_success_message
 from agent_resources.exceptions import (
     ClaudeAddError,
     RepoNotFoundError,
@@ -63,13 +63,12 @@ def add(
     dest = get_destination("agents", global_install)
     scope = "user" if global_install else "project"
 
-    typer.echo(f"Fetching agent '{agent_name}' from {username}/agent-resources...")
-
     try:
-        agent_path = fetch_resource(
-            username, agent_name, dest, ResourceType.AGENT, overwrite
-        )
-        typer.echo(f"Added agent '{agent_name}' to {agent_path} ({scope} scope)")
+        with fetch_spinner():
+            agent_path = fetch_resource(
+                username, agent_name, dest, ResourceType.AGENT, overwrite
+            )
+        print_success_message("agent", agent_name, username)
     except RepoNotFoundError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1)
