@@ -179,7 +179,13 @@ def fetch_spinner():
         yield
 
 
-def print_success_message(resource_type: str, host: str, name: str, username: str) -> None:
+def print_success_message(
+    resource_type: str,
+    host: str,
+    name: str,
+    username: str,
+    share_name: str | None = None,
+) -> None:
     """Print branded success message with rotating CTA."""
     console.print(f"✅ Added {resource_type} '{name}' via 🧩 agent-skills-upd", style="dim")
 
@@ -187,10 +193,11 @@ def print_success_message(resource_type: str, host: str, name: str, username: st
     if host == "github.com":
         host_visible = ""
 
+    share_ref = share_name or name
     ctas = [
         f"💡 Create your own {resource_type} library on GitHub: uvx create-agent-skill-repo --github",
         "⭐ Star project: github.com/xlab/agent-skills-project",
         "🔭 Explore more skills: https://upd.dev/skills",
-        f"📢 Share: uvx upd-{resource_type} {host_visible}{username}/{name}",
+        f"📢 Share: uvx upd-{resource_type} {host_visible}{username}/{share_ref}",
     ]
     console.print(random.choice(ctas), style="dim")

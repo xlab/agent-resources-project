@@ -32,7 +32,9 @@ def test_clawd_slug_uses_upd_dev_prefix():
         assert kwargs["repo"] == "steipete-weather"
 
         print_args = mock_print.call_args[0]
+        print_kwargs = mock_print.call_args[1]
         assert print_args[0] == "skill"
         assert print_args[1] == "upd.dev"
         assert print_args[2] == "weather"
         assert print_args[3] == "clawdhub"
+        assert print_kwargs["share_name"] == "steipete-weather"
