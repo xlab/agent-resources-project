@@ -1,0 +1,50 @@
+name: Publish npm packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: create-agent-skill-repo
+            path: command-packages/npm/create-agent-skill-repo
+          - name: upd-agent
+            path: command-packages/npm/upd-agent
+          - name: upd-agent-skill
+            path: command-packages/npm/upd-agent-skill
+          - name: upd-command
+            path: command-packages/npm/upd-command
+          - name: upd-skill
+            path: command-packages/npm/upd-skill
+          - name: upd-slash-command
+            path: command-packages/npm/upd-slash-command
+          - name: upd-subagent
+            path: command-packages/npm/upd-subagent
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish package
+        run: npm publish
