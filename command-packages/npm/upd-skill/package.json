@@ -1,0 +1,22 @@
+{
+  "name": "upd-skill",
+  "version": "0.0.1",
+  "description": "CLI tool for updating Claude Code, Codex, OpenCode, Amp, Clawdbot agent skills.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "codex",
+    "open-code",
+    "clawdbot",
+    "clawdhub",
+    "ai",
+    "agent",
+    "skill"
+  ],
+  "author": "Upd.dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://upd.dev/skills/agent-skills-project.git"
+  }
+}

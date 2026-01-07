@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "upd-agent-skill"
+version = "0.0.1"
+description = "CLI tool for updating Claude Code, Codex, OpenCode, Amp, Clawdbot agent skills."
+requires-python = ">=3.10"
+license = "MIT"
+keywords = [
+    "claude",
+    "claude-code",
+    "codex",
+    "open-code",
+    "clawdbot",
+    "clawdhub",
+    "ai",
+    "agent",
+    "skill",
+]
+
+[project.urls]
+Repository = "https://upd.dev/skills/agent-skills-project"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/upd_agent_skill"]

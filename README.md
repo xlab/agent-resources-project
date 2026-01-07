@@ -1,12 +1,14 @@
 <div align="center">
 
-# 🧩 agent-resources
+# 🧩 agent-skills-project
 
-**Share and install Claude Code skills, commands, and agents with a single command.**
+## Just Update Your Skills
 
-*Like pip or npm, but for Claude Code resources.*
+**Share and install Claude Code / Codex / OpenCode / Amp / ClawdBot skills with a single command.**
 
-[![PyPI](https://img.shields.io/pypi/v/agent-resources?color=blue)](https://pypi.org/project/agent-resources/)
+*Like pip or npm, but for your agent resources.*
+
+[![PyPI](https://img.shields.io/pypi/v/agent-skills-upd?color=blue)](https://pypi.org/project/agent-skills-upd/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [Try It](#-try-it-now) • [Install](#-install-any-resource) • [Create Your Own](#-create-your-own) • [Community](#-community-resources)
@@ -20,26 +22,45 @@
 No installation needed. Just run:
 
 ```bash
-uvx add-skill kasperjunge/hello-world
+uvx upd-skill kasperjunge/hello-world
 ```
 
 **That's it.** The skill is now available in Claude Code.
+
+Using another agent? Not a problem:
+
+```bash
+uvx upd-skill snarktank/amp-skills/pdf --env amp
+```
+
+**That's it.** The skill is now available in Amp.
 
 ---
 
 ## 📦 Install Any Resource
 
 ```bash
-uvx add-skill <username>/<skill-name>       # Skills
-uvx add-command <username>/<command-name>   # Slash commands
-uvx add-agent <username>/<agent-name>       # Sub-agents
+uvx upd-skill <username>/<skill-name>               # Skills from GitHub
+uvx upd-skill <username>/<repo-name>/<skill-name>   # Skills from GitHub
+uvx upd-skill upd.dev/<username>/<skill-name>       # Skills from Upd.dev
 ```
 
-To fetch from upd.dev, prefix the host:
+To install slash commands or subagents for Claude Code:
 
 ```bash
-uvx add-skill upd.dev/<username>/<skill-name>
+uvx upd-command <username>/<command-name>   # Slash commands
+uvx upd-agent <username>/<agent-name>       # Sub-agents
 ```
+
+---
+
+## 🤖 Supports Your Favorite Agent
+
+- Default agent is Claude Code
+- For Codex use flag `--env codex`
+- For OpenCode use flag `--env opencode`
+- For Amp use flag `--env amp`
+- For ClawdBot use flag `--env clawd`
 
 ---
 
@@ -48,7 +69,7 @@ uvx add-skill upd.dev/<username>/<skill-name>
 Ready to share your own skills? Create your personal toolkit in 30 seconds:
 
 ```bash
-uvx create-agent-resources-repo --github
+uvx create-agent-skill-repo --github
 ```
 
 **Done.** You now have a GitHub repo that anyone can install from.
@@ -62,10 +83,10 @@ uvx create-agent-resources-repo --github
 - Instant shareability — tell others:
 
 ```bash
-uvx add-skill <your-username>/hello-world
+uvx upd-skill <your-username>/hello-world
 ```
 
-### Add Your Own Resources
+### Create Your Own Resources
 
 Edit the files in your repo:
 
@@ -77,7 +98,7 @@ your-username/agent-resources/
     └── agents/          # Sub-agent .md files
 ```
 
-Push to GitHub. No registry, no publishing step.
+Push to GitHub or Upd.dev. No registry, no publishing step.
 
 ---
 
@@ -85,7 +106,7 @@ Push to GitHub. No registry, no publishing step.
 
 Sharing is just a message:
 
-> *"This skill saves me hours — try `uvx add-skill yourname/cool-skill`"*
+> *"This skill saves me hours — try `uvx upd-skill yourname/cool-skill`"*
 
 **One command. Zero friction.** The more you share, the more the community grows.
 
@@ -98,9 +119,9 @@ Sharing is just a message:
 A comprehensive Claude Code toolkit for Go developers.
 
 ```bash
-uvx add-skill dsjacobsen/golang-pro      # Expert Go knowledge
-uvx add-agent dsjacobsen/go-reviewer     # Code review agent
-uvx add-command dsjacobsen/go-check      # Quick code check
+uvx upd-skill dsjacobsen/golang-pro      # Expert Go knowledge
+uvx upd-agent dsjacobsen/go-reviewer     # Code review agent
+uvx upd-command dsjacobsen/go-check      # Quick code check
 ```
 
 **Includes**: 1 skill, 9 agents, 11 commands covering scaffolding, testing, API building, refactoring, and more.
@@ -113,6 +134,6 @@ uvx add-command dsjacobsen/go-check      # Quick code check
 
 <div align="center">
 
-**MIT License** · Made for the [Claude Code](https://claude.ai/code) community
+**MIT License** · Fair fork of [kasperjunge/agent-resources-project](https://github.com/kasperjunge/agent-resources-project) to support more Git hosts and target environments (++ Codex, OpenCode, Amp, ClawdBot).
 
 </div>

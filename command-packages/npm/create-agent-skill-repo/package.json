@@ -1,0 +1,19 @@
+{
+  "name": "create-agent-skill-repo",
+  "version": "0.0.1",
+  "description": "Scaffold a new agent-resources GitHub repository for sharing Claude Code skills, commands, and agents.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "agent",
+    "scaffold",
+    "create"
+  ],
+  "author": "Upd.dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://upd.dev/skills/agent-skills-project.git"
+  }
+}

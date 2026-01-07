@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-upd"
+version = "0.0.1"
+description = "Update Claude Code sub-agents from GitHub to your project"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = ["agent-skills-upd>=0.0.1"]
+
+[project.scripts]
+agent-upd = "agent_skills_upd.cli.agent:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_upd"]

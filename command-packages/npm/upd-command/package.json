@@ -1,0 +1,18 @@
+{
+  "name": "upd-command",
+  "version": "0.0.1",
+  "description": "CLI tool for updating Claude Code commands from git.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "agent",
+    "command"
+  ],
+  "author": "Upd.dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://upd.dev/skills/agent-skills-project"
+  }
+}

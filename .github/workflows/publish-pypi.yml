@@ -1,0 +1,180 @@
+name: Publish PyPI packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: agent-skills-upd
+            path: src/agent-skills-upd
+          - name: agent-upd
+            path: command-packages/pypi/agent-upd
+          - name: command-upd
+            path: command-packages/pypi/command-upd
+          - name: create-agent-skill-repo
+            path: command-packages/pypi/create-agent-skill-repo
+          - name: skill-upd
+            path: command-packages/pypi/skill-upd
+          - name: upd-agent
+            path: command-packages/pypi/upd-agent
+          - name: upd-agent-skill
+            path: command-packages/pypi/upd-agent-skill
+          - name: upd-command
+            path: command-packages/pypi/upd-command
+          - name: upd-skill
+            path: command-packages/pypi/upd-skill
+          - name: upd-slash-command
+            path: command-packages/pypi/upd-slash-command
+          - name: upd-subagent
+            path: command-packages/pypi/upd-subagent
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI (token, attempt 1)
+        id: publish_token_1
+        if: ${{ env.PYPI_API_TOKEN != '' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+          user: ${{ env.PYPI_USERNAME || '__token__' }}
+          password: ${{ env.PYPI_API_TOKEN }}
+
+      - name: Wait before retry 2 (token)
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_1.outcome == 'failure' }}
+        run: sleep 3
+
+      - name: Publish to PyPI (token, attempt 2)
+        id: publish_token_2
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_1.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+          user: ${{ env.PYPI_USERNAME || '__token__' }}
+          password: ${{ env.PYPI_API_TOKEN }}
+
+      - name: Wait before retry 3 (token)
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_2.outcome == 'failure' }}
+        run: sleep 6
+
+      - name: Publish to PyPI (token, attempt 3)
+        id: publish_token_3
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_2.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+          user: ${{ env.PYPI_USERNAME || '__token__' }}
+          password: ${{ env.PYPI_API_TOKEN }}
+
+      - name: Wait before retry 4 (token)
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_3.outcome == 'failure' }}
+        run: sleep 9
+
+      - name: Publish to PyPI (token, attempt 4)
+        id: publish_token_4
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_3.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+          user: ${{ env.PYPI_USERNAME || '__token__' }}
+          password: ${{ env.PYPI_API_TOKEN }}
+
+      - name: Wait before retry 5 (token)
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_4.outcome == 'failure' }}
+        run: sleep 12
+
+      - name: Publish to PyPI (token, attempt 5)
+        if: ${{ env.PYPI_API_TOKEN != '' && steps.publish_token_4.outcome == 'failure' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+          user: ${{ env.PYPI_USERNAME || '__token__' }}
+          password: ${{ env.PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI (trusted, attempt 1)
+        id: publish_trusted_1
+        if: ${{ env.PYPI_API_TOKEN == '' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+
+      - name: Wait before retry 2 (trusted)
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_1.outcome == 'failure' }}
+        run: sleep 3
+
+      - name: Publish to PyPI (trusted, attempt 2)
+        id: publish_trusted_2
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_1.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+
+      - name: Wait before retry 3 (trusted)
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_2.outcome == 'failure' }}
+        run: sleep 6
+
+      - name: Publish to PyPI (trusted, attempt 3)
+        id: publish_trusted_3
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_2.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+
+      - name: Wait before retry 4 (trusted)
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_3.outcome == 'failure' }}
+        run: sleep 9
+
+      - name: Publish to PyPI (trusted, attempt 4)
+        id: publish_trusted_4
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_3.outcome == 'failure' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist
+
+      - name: Wait before retry 5 (trusted)
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_4.outcome == 'failure' }}
+        run: sleep 12
+
+      - name: Publish to PyPI (trusted, attempt 5)
+        if: ${{ env.PYPI_API_TOKEN == '' && steps.publish_trusted_4.outcome == 'failure' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.path }}/dist

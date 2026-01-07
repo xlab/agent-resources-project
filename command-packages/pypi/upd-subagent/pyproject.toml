@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "upd-subagent"
+version = "0.0.1"
+description = "CLI tool for updating Claude Code subagents from git."
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["claude", "claude-code", "ai", "agent", "subagent"]
+
+[project.urls]
+Repository = "https://upd.dev/skills/agent-skills-project"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/upd_subagent"]
