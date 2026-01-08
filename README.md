@@ -92,13 +92,22 @@ uvx upd-skill username/skill-name --global
 
 ## 🦞 Special Case For ClawdBot Users
 
-For any skill from [clawdhub.com](https://clawdhub.com) (which are conveniently and rentlessly archived to [upd.dev/clawdhub](https://upd.dev/clawdhub)):
+For any skill from [clawdhub.com](https://clawdhub.com):
 
 ```bash
-uvx upd-skill steipete-weather --env clawd
+uvx upd-skill clawdhub.com/weather --env clawd
 ```
 
 Gets you a skill for ClawdBot located at e.g. [clawdhub.com/steipete/weather](https://clawdhub.com/steipete/weather). You can publish more skills to ClawdHub to get them available there.
+
+### Note About ClawdHub Mirrors
+
+All skills on this hub are conveniently and rentlessly archived to [upd.dev/clawdhub](https://upd.dev/clawdhub), to get the skill from that mirror instead:
+
+```bash
+uvx upd-skill steipete-weather --env clawd
+uvx upd-skill upd.dev/clawdhub/weather --repo steipete-weather --env codex
+```
 
 ---
 
