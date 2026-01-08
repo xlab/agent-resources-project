@@ -87,9 +87,9 @@ def create(
     typer.echo(f"Creating agent-resources repository at {output_path}...")
     create_agent_skills_upd_repo(output_path, username)
     typer.echo("  Created directory structure")
-    typer.echo("  Added hello-world skill")
-    typer.echo("  Added hello command")
-    typer.echo("  Added hello-agent agent")
+    typer.echo("  Installed hello-world skill")
+    typer.echo("  Installed hello command")
+    typer.echo("  Installed hello-agent agent")
     typer.echo("  Created README.md")
 
     # Initialize git

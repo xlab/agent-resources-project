@@ -187,17 +187,21 @@ def print_success_message(
     share_name: str | None = None,
 ) -> None:
     """Print branded success message with rotating CTA."""
-    console.print(f"✅ Added {resource_type} '{name}' via 🧩 agent-skills-upd", style="dim")
+    console.print(f"✅ Installed {resource_type} '{name}' via 🧩 agent-skills-upd", style="dim")
 
+    username_visible = username + "/"
     host_visible = host + "/"
     if host == "github.com":
         host_visible = ""
+    elif host == "clawdhub.com":
+        username_visible = ""
 
     share_ref = share_name or name
     ctas = [
         f"💡 Create your own {resource_type} library on GitHub: uvx create-agent-skill-repo --github",
         "⭐ Star project: github.com/xlab/agent-skills-project",
         "🔭 Explore more skills: https://upd.dev/skills",
-        f"📢 Share: uvx upd-{resource_type} {host_visible}{username}/{share_ref}",
+        "🦞 More skills on ClawdHub: https://clawdhub.com",
+        f"📢 Share: uvx upd-{resource_type} {host_visible}{username_visible}{share_ref}",
     ]
     console.print(random.choice(ctas), style="dim")

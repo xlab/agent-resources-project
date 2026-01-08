@@ -7,7 +7,7 @@ from unittest.mock import patch
 from typer.testing import CliRunner
 
 from agent_skills_upd.cli.skill import app
-from agent_skills_upd.fetcher import ResourceType
+from agent_skills_upd.fetcher import ClawdhubFetchResult, ResourceType
 
 
 def test_clawd_slug_uses_upd_dev_prefix():
@@ -38,3 +38,30 @@ def test_clawd_slug_uses_upd_dev_prefix():
         assert print_args[2] == "weather"
         assert print_args[3] == "clawdhub"
         assert print_kwargs["share_name"] == "steipete-weather"
+
+
+def test_clawdhub_format_uses_api_fetch():
+    """clawdhub.com/<skill> should use the Clawdhub API flow."""
+    runner = CliRunner()
+    dest_path = Path.cwd() / ".claude" / "skills"
+
+    with (
+        patch("agent_skills_upd.cli.skill.fetch_clawdhub_skill") as mock_fetch,
+        patch("agent_skills_upd.cli.skill.fetch_spinner", return_value=nullcontext()),
+    ):
+        mock_fetch.return_value = ClawdhubFetchResult(
+            path=Path("weather"),
+            old_version=None,
+            new_version="1.2.3",
+            was_existing=False,
+        )
+
+        result = runner.invoke(app, ["clawdhub.com/weather"])
+
+        assert result.exit_code == 0
+        assert "Installed version 1.2.3" in result.stdout
+        args, kwargs = mock_fetch.call_args
+        assert args[0] == "weather"
+        assert args[1] == dest_path
+        assert args[2] is False
+        assert kwargs == {}

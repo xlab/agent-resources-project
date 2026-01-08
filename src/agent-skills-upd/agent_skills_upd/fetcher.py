@@ -1,8 +1,11 @@
 """Generic resource fetcher for skills, commands, and agents."""
 
+import io
+import json
 import shutil
 import tarfile
 import tempfile
+import zipfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -86,6 +89,21 @@ RESOURCE_SEARCH_PATTERNS = {
 # Name of the repository to fetch resources from
 REPO_NAME = "agent-resources"
 
+CLAWDHUB_HOST = "clawdhub.com"
+CLAWDHUB_DOWNLOAD_URL = "https://auth.clawdhub.com/api/download"
+CLAWDHUB_METADATA_URL = "https://auth.clawdhub.com/api/skill"
+CLAWDHUB_METADATA_FILENAME = "SKILL.json"
+
+
+@dataclass
+class ClawdhubFetchResult:
+    """Result from a Clawdhub skill fetch."""
+
+    path: Path
+    old_version: str | None
+    new_version: str
+    was_existing: bool
+
 
 def find_root_skill_file(repo_dir: Path) -> Path | None:
     """Find a root-level SKILL.md file case-insensitively."""
@@ -109,6 +127,65 @@ def parse_frontmatter_name(skill_file: Path) -> tuple[str | None, str | None]:
         return None, "Root SKILL.md frontmatter missing name."
 
     return name_value, None
+
+
+def parse_clawdhub_version(metadata: dict) -> str | None:
+    """Extract the latest version string from Clawdhub metadata."""
+    latest = metadata.get("latestVersion")
+    if isinstance(latest, dict):
+        version = latest.get("version")
+        if isinstance(version, str) and version.strip():
+            return version.strip()
+    return None
+
+
+def read_clawdhub_version(skill_dir: Path) -> str | None:
+    """Read the stored Clawdhub version from SKILL.json, if present."""
+    metadata_path = skill_dir / CLAWDHUB_METADATA_FILENAME
+    if not metadata_path.exists():
+        return None
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    return parse_clawdhub_version(metadata) if isinstance(metadata, dict) else None
+
+
+def write_clawdhub_metadata(skill_dir: Path, metadata: dict) -> None:
+    """Persist Clawdhub metadata alongside SKILL.md."""
+    metadata_path = skill_dir / CLAWDHUB_METADATA_FILENAME
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+
+def select_archive_root(extract_path: Path) -> Path:
+    """Resolve the real archive root for validation and copying."""
+    entries = [entry for entry in extract_path.iterdir()]
+    if len(entries) == 1 and entries[0].is_dir():
+        return entries[0]
+    return extract_path
+
+
+def extract_archive(archive_bytes: bytes, extract_path: Path) -> None:
+    """Extract zip or tar archives into extract_path."""
+    archive_buffer = io.BytesIO(archive_bytes)
+    if zipfile.is_zipfile(archive_buffer):
+        archive_buffer.seek(0)
+        with zipfile.ZipFile(archive_buffer) as archive:
+            archive.extractall(extract_path)
+        return
+
+    archive_buffer.seek(0)
+    try:
+        with tarfile.open(fileobj=archive_buffer, mode="r:*") as tar:
+            try:
+                tar.extractall(extract_path, filter="data")
+            except TypeError:
+                tar.extractall(extract_path)
+    except tarfile.TarError as exc:
+        raise SkillUpdError("Unable to extract Clawdhub archive.") from exc
 
 
 def validate_repository_structure(repo_dir: Path) -> dict:
@@ -337,3 +414,100 @@ def fetch_resource(
             shutil.copy2(str(resource_source), str(resource_dest))
 
     return resource_dest
+
+
+def fetch_clawdhub_skill(
+    name: str,
+    dest: Path,
+    overwrite: bool = True,
+) -> ClawdhubFetchResult:
+    """
+    Fetch a skill from Clawdhub via the API and copy it to dest.
+
+    Args:
+        name: Clawdhub skill slug (no username)
+        dest: Destination directory (e.g., .claude/skills/)
+        overwrite: Whether to overwrite existing resource
+
+    Returns:
+        ClawdhubFetchResult with install path and version info.
+    """
+    resource_dest = dest / name
+    was_existing = resource_dest.exists()
+    old_version = read_clawdhub_version(resource_dest) if was_existing else None
+
+    if was_existing and not overwrite:
+        raise ResourceExistsError(
+            f"Skill '{name}' already exists at {resource_dest}\n"
+            f"Use --overwrite to replace it."
+        )
+
+    try:
+        with httpx.Client(follow_redirects=True, timeout=30.0) as client:
+            metadata_response = client.get(CLAWDHUB_METADATA_URL, params={"slug": name})
+            if metadata_response.status_code == 404:
+                raise ResourceNotFoundError(
+                    f"Skill '{name}' not found on {CLAWDHUB_HOST}."
+                )
+            metadata_response.raise_for_status()
+            try:
+                metadata = metadata_response.json()
+            except ValueError as exc:
+                raise SkillUpdError("Clawdhub metadata response was not valid JSON.") from exc
+
+            new_version = parse_clawdhub_version(metadata)
+            if not new_version:
+                raise SkillUpdError(
+                    "Clawdhub metadata missing latestVersion.version."
+                )
+
+            download_response = client.get(
+                CLAWDHUB_DOWNLOAD_URL, params={"slug": name, "tag": "latest"}
+            )
+            if download_response.status_code == 404:
+                raise ResourceNotFoundError(
+                    f"Skill '{name}' not found on {CLAWDHUB_HOST}."
+                )
+            download_response.raise_for_status()
+            archive_bytes = download_response.content
+    except httpx.HTTPStatusError as exc:
+        raise SkillUpdError(f"Failed to download Clawdhub skill: {exc}") from exc
+    except httpx.RequestError as exc:
+        raise SkillUpdError(f"Network error: {exc}") from exc
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        extract_path = tmp_path / "extracted"
+        extract_path.mkdir(parents=True, exist_ok=True)
+        extract_archive(archive_bytes, extract_path)
+
+        archive_root = select_archive_root(extract_path)
+        root_skill_file = find_root_skill_file(archive_root)
+        if root_skill_file is None:
+            raise SkillUpdError("Root SKILL.md not found in Clawdhub archive.")
+
+        root_skill_name, root_skill_error = parse_frontmatter_name(root_skill_file)
+        if root_skill_error:
+            raise SkillUpdError(root_skill_error)
+        if root_skill_name != name:
+            raise SkillUpdError(
+                "Root SKILL.md frontmatter name "
+                f"'{root_skill_name}' does not match requested '{name}'."
+            )
+
+        if resource_dest.exists():
+            if resource_dest.is_dir():
+                shutil.rmtree(resource_dest)
+            else:
+                resource_dest.unlink()
+
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(str(archive_root), str(resource_dest))
+        write_clawdhub_metadata(resource_dest, metadata)
+
+    return ClawdhubFetchResult(
+        path=resource_dest,
+        old_version=old_version,
+        new_version=new_version,
+        was_existing=was_existing,
+    )
